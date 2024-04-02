@@ -37,7 +37,6 @@ public class GorevlerService {
 		toSave.setAciklama(newGorevRequest.getAciklama());
 		toSave.setTarih(newGorevRequest.getTarih());
 		toSave.setSaat(newGorevRequest.getSaat());
-		toSave.setOncelik(newGorevRequest.getOncelik());
 		toSave.setUser(user);
 		return gorevRepository.save(toSave);
 	}
@@ -54,7 +53,6 @@ public class GorevlerService {
 			toUpdate.setAciklama(updategorev.getAciklama());
 			toUpdate.setTarih(updategorev.getTarih());
 			toUpdate.setSaat(updategorev.getSaat());
-			toUpdate.setOncelik(updategorev.getOncelik());
 			gorevRepository.save(toUpdate);
 		}
 		return null;

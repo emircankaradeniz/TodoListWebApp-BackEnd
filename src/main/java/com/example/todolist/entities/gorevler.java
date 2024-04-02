@@ -41,23 +41,17 @@ public class gorevler {
 	
 	@Column(name="saat")
 	private String saat;
-	
-	@Column(name="oncelik")
-	private boolean oncelik;
-	
-	
-	
+
 
 	public gorevler() {
 	
 	}
 
-	public gorevler( String gorevAdi, String aciklama, String tarih, String saat, boolean oncelik,UserEntity user) {
+	public gorevler( String gorevAdi, String aciklama, String tarih, String saat,UserEntity user) {
 		this.gorevAdi = gorevAdi;
 		this.aciklama = aciklama;
 		this.tarih = tarih;
 		this.saat = saat;
-		this.oncelik = oncelik;
 		this.user=user;
 	}
 
@@ -100,22 +94,11 @@ public class gorevler {
 	public void setSaat(String saat) {
 		this.saat = saat;
 	}
-
-	public boolean isOncelik() {
-		return oncelik;
-	}
-	public void setOncelik(boolean oncelik) {
-		this.oncelik = oncelik;
-	}
-
 	public void setUser(UserEntity user2) {
 		this.user=user2;
-		
 	}
 	public UserEntity getUser()
 	{
 		return user;
 	}
-
-	
 }

@@ -62,7 +62,7 @@ public class GorevlerController {
 	public ResponseEntity<gorevler> createOneGorev(@RequestBody gorevler  gorevbody) {
 		try {
 			gorevler gorev =gorevRepo
-					.save(new gorevler(gorevbody.getGorev_adi(),gorevbody.getAciklama(),gorevbody.getTarih(),gorevbody.getSaat(),gorevbody.isOncelik(),gorevbody.getUser()));
+					.save(new gorevler(gorevbody.getGorev_adi(),gorevbody.getAciklama(),gorevbody.getTarih(),gorevbody.getSaat(),gorevbody.getUser()));
 			return new ResponseEntity<>(gorev,HttpStatus.CREATED);
 		}catch(Exception e) {
 			return new ResponseEntity<>(null,HttpStatus.INTERNAL_SERVER_ERROR);
@@ -79,7 +79,6 @@ public class GorevlerController {
 			gorev.setAciklama(gorevBody.getAciklama());
 			gorev.setSaat(gorevBody.getSaat());
 			gorev.setTarih(gorevBody.getTarih());
-			gorev.setOncelik(gorevBody.isOncelik());
 			gorev.setUser(gorevBody.getUser());
 			return new ResponseEntity<>(gorevRepo.save(gorev),HttpStatus.OK);
 		}else {
