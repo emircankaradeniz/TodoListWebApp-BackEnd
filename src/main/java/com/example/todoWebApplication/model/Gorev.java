@@ -14,6 +14,9 @@ public class Gorev {
     private String aciklama;
     private String tarih;
     private String saat;
+    private boolean tamamlandi; // Yeni alan
+
+    // Getter ve Setter Metodları
     public Long getId() {
         return id;
     }
@@ -52,5 +55,13 @@ public class Gorev {
 
     public void setSaat(String saat) {
         this.saat = saat;
+    }
+
+    public boolean isTamamlandi() {
+        return tamamlandi;
+    }
+
+    public void setTamamlandi(boolean tamamlandi) {
+        this.tamamlandi = tamamlandi;
     }
 }

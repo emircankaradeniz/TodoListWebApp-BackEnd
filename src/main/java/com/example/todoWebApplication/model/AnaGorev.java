@@ -18,7 +18,10 @@ public class AnaGorev {
 
     @Column(nullable = false)
     private Boolean tamamlandi = false;
-
+    
+    @Column(nullable = false)
+    private String saat;
+    
     // Getter ve Setter'lar
     public Long getId() {
         return id;
@@ -50,5 +53,13 @@ public class AnaGorev {
 
     public void setTamamlandi(Boolean tamamlandi) {
         this.tamamlandi = tamamlandi;
+    }
+    
+    public String getSaat() {
+        return saat;
+    }
+
+    public void setSaat(String saat) {
+        this.saat = saat;
     }
 }
