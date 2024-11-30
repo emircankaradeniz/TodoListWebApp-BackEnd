@@ -1,5 +1,7 @@
 package com.example.todoWebApplication.model;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -16,6 +18,17 @@ public class Gorev {
     private String saat;
     private boolean tamamlandi; // Yeni alan
 
+    private LocalDate lastResetDate;
+
+    public LocalDate getLastResetDate() {
+        return lastResetDate;
+    }
+
+    public void setLastResetDate(LocalDate lastResetDate) {
+        this.lastResetDate = lastResetDate;
+    }
+
+    
     // Getter ve Setter Metodları
     public Long getId() {
         return id;
