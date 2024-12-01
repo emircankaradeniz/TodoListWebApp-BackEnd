@@ -1,17 +1,21 @@
 package com.example.todoWebApplication.controller;
 
+import com.example.todoWebApplication.entity.OurUsers;
 import com.example.todoWebApplication.model.AnaGorev;
 import com.example.todoWebApplication.repository.AnaGorevRepository;
+import com.example.todoWebApplication.repository.UsersRepo;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:8081")
@@ -21,20 +25,30 @@ public class AnaGorevController {
 
     @Autowired
     private AnaGorevRepository anaGorevRepository;
+    
+    @Autowired
+    private UsersRepo usersRepo;
 
     // Tüm görevleri listeleme
+    
     @GetMapping
-    public List<AnaGorev> getAllAnaGorevler() {
-        return anaGorevRepository.findAll();
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
+    public List<AnaGorev> getAllAnaGorevler(Authentication authentication) {
+        String currentUserEmail = authentication.getName();
+        return anaGorevRepository.findByUser_Email(currentUserEmail);
     }
 
     // ID'ye göre görev getirme
+    
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public AnaGorev getAnaGorevById(@PathVariable Long id) {
         return anaGorevRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Görev bulunamadı: ID=" + id));
     }
+    
     @GetMapping("/tamamlanan-gorevler-aylik")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public Map<Object, Long> getAylikTamamlananGorevler() {
         return anaGorevRepository.findAll().stream()
             .filter(AnaGorev::getTamamlandi) // Sadece tamamlanmış görevleri al
@@ -50,13 +64,21 @@ public class AnaGorevController {
     }
 
     // Yeni görev oluşturma
+    
     @PostMapping
-    public AnaGorev createAnaGorev(@RequestBody AnaGorev gorev) {
-        return anaGorevRepository.save(gorev);
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
+    public AnaGorev createAnaGorev(@RequestBody AnaGorev anaGorev, Authentication authentication) {
+        String currentUserEmail = authentication.getName();
+        OurUsers user = usersRepo.findByEmail(currentUserEmail)
+                         .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
+        anaGorev.setUser(user); // Görevi giriş yapan kullanıcıya bağla
+        return anaGorevRepository.save(anaGorev);
     }
 
     // Görev güncelleme
+    
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public ResponseEntity<?> updateAnaGorev(@PathVariable("id") Long id, @RequestBody AnaGorev gorevDetails) {
         try {
             if (anaGorevRepository.existsById(id)) {
@@ -77,8 +99,9 @@ public class AnaGorevController {
                     .body("Görev güncellenirken hata oluştu.");
         }
     }
-
+    
     @PutMapping("/tamamla/{id}")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public ResponseEntity<?> tamamlaGorev(@PathVariable("id") Long id) {
         try {
             if (anaGorevRepository.existsById(id)) {
@@ -98,8 +121,9 @@ public class AnaGorevController {
         }
     }
 
-
+    
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public ResponseEntity<?> deleteAnaGorev(@PathVariable("id") Long id) {
         try {
             if (anaGorevRepository.existsById(id)) {

@@ -1,12 +1,17 @@
 package com.example.todoWebApplication.controller;
 
+import com.example.todoWebApplication.entity.OurUsers;
 import com.example.todoWebApplication.model.Gorev;
 import com.example.todoWebApplication.repository.AnaGorevRepository;
 import com.example.todoWebApplication.repository.GorevRepository;
+import com.example.todoWebApplication.repository.UsersRepo;
 import com.example.todoWebApplication.service.GorevService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,23 +26,36 @@ public class GorevController {
     
     @Autowired
     private GorevRepository gorevRepository;
+    
+    @Autowired
+    private UsersRepo usersRepo;
 
+    
     @GetMapping
-    public List<Gorev> getAllGorevler() {
-        return gorevService.getAllGorevler();
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
+    public List<Gorev> getAllGorevler(Authentication authentication) {
+        String currentUserEmail = authentication.getName();
+        return gorevRepository.findByUser_Email(currentUserEmail);
     }
-
+    
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public Gorev getGorevById(@PathVariable Long id) {
         return gorevService.getGorevById(id);
     }
 
     @PostMapping
-    public Gorev createGorev(@RequestBody Gorev gorev) {
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
+    public Gorev createGorev(@RequestBody Gorev gorev, Authentication authentication) {
+        String currentUserEmail = authentication.getName();
+        OurUsers user = usersRepo.findByEmail(currentUserEmail)
+                         .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
+        gorev.setUser(user);
         return gorevService.saveGorev(gorev);
     }
-
+    
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public ResponseEntity<?> updateGorev(@PathVariable("id") Long id, @RequestBody Gorev gorevDetails) {
         try {
             // Görev mevcut mu kontrol et
@@ -69,6 +87,7 @@ public class GorevController {
 
     
     @PutMapping("/{id}/tamamla")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public ResponseEntity<?> completeGorev(@PathVariable("id") Long id) {
         try {
             if (gorevRepository.existsById(id)) {
@@ -90,8 +109,9 @@ public class GorevController {
         }
     }
 
-
+    
     @PutMapping("/{id}/aciklama")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public ResponseEntity<?> updateGorevDescription(@PathVariable("id") Long id, @RequestBody String newDescription) {
         try {
             if (gorevRepository.existsById(id)) {
@@ -115,7 +135,9 @@ public class GorevController {
 
 
     // Görev sil
+    
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public ResponseEntity<?> deleteGorev(@PathVariable("id") Long id) {
         try {
             if (gorevRepository.existsById(id)) {

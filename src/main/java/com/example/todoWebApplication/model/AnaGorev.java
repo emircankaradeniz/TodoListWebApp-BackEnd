@@ -3,7 +3,12 @@ package com.example.todoWebApplication.model;
 import jakarta.persistence.*;
 import java.util.Date;
 
+import com.example.todoWebApplication.entity.OurUsers;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class AnaGorev {
 
     @Id
@@ -21,6 +26,19 @@ public class AnaGorev {
     
     @Column(nullable = false)
     private String saat;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
+    private OurUsers user;
+
+    public OurUsers getUser() {
+        return user;
+    }
+
+    public void setUser(OurUsers user) {
+        this.user = user;
+    }
     
     // Getter ve Setter'lar
     public Long getId() {
