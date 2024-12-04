@@ -25,6 +25,7 @@ public class AnaGorevService {
         AnaGorev gorev = anaGorevRepository.findById(id).orElseThrow();
         gorev.setGorevAdi(gorevDetails.getGorevAdi());
         gorev.setSonTarih(gorevDetails.getSonTarih());
+        gorev.setSaat(gorevDetails.getSaat());
         gorev.setTamamlandi(gorevDetails.getTamamlandi());
         return anaGorevRepository.save(gorev);
     }

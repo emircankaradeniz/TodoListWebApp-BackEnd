@@ -86,6 +86,7 @@ public class AnaGorevController {
                         .orElseThrow(() -> new RuntimeException("Görev bulunamadı: ID=" + id));
                 gorev.setGorevAdi(gorevDetails.getGorevAdi());
                 gorev.setSonTarih(gorevDetails.getSonTarih());
+                gorev.setSaat(gorevDetails.getSaat());
                 gorev.setTamamlandi(gorevDetails.getTamamlandi());
                 anaGorevRepository.save(gorev);
                 return ResponseEntity.ok("Görev başarıyla güncellendi: ID=" + id);

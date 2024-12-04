@@ -8,7 +8,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.example.todoWebApplication.model.AnaGorev;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
 
@@ -27,7 +29,25 @@ public class OurUsers implements UserDetails {
     private String role;
     
     @Lob // Avatar için uzun veri saklama desteği
-    private String avatar;
+    private byte[] avatar;
+    
+    
+    public byte[] getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(byte[] avatar) {
+        this.avatar = avatar;
+    }
+    
+    @JsonProperty("avatarBase64")
+    public String getAvatarBase64() {
+        if (avatar != null) {
+            return Base64.getEncoder().encodeToString(avatar); // Avatar'ı base64 formatına çevir
+        }
+        return null; // Avatar yoksa null döner
+    }
+
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
@@ -113,15 +133,5 @@ public class OurUsers implements UserDetails {
 
 	public String getCity() {
 		return this.city;
-	}
-
-	public Object getAvatar() {
-		// TODO Auto-generated method stub
-		return this.avatar;
-	}
-
-	public void setAvatar(Object object) {
-		this.avatar=(String) object;
-		
 	}
 }

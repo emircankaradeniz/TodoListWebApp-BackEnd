@@ -208,7 +208,7 @@ public class UsersManagementService {
         existingUser.setCity(updatedUser.getCity());
 
         // Avatar kontrolü
-        if (updatedUser.getAvatar() != null && !((String) updatedUser.getAvatar()).isEmpty()) {
+        if (updatedUser.getAvatar() != null && !((updatedUser.getAvatar()).length==0)) {
             existingUser.setAvatar(updatedUser.getAvatar());
         }
 
@@ -227,7 +227,7 @@ public class UsersManagementService {
     }
 
 
-    public ReqRes getMyInfo(String email){
+    public ReqRes getMyInfo(String email) {
         ReqRes reqRes = new ReqRes();
         try {
             Optional<OurUsers> userOptional = usersRepo.findByEmail(email);
@@ -237,14 +237,12 @@ public class UsersManagementService {
                 reqRes.setMessage("successful");
             } else {
                 reqRes.setStatusCode(404);
-                reqRes.setMessage("User not found for update");
+                reqRes.setMessage("User not found");
             }
-
-        }catch (Exception e){
+        } catch (Exception e) {
             reqRes.setStatusCode(500);
             reqRes.setMessage("Error occurred while getting user info: " + e.getMessage());
         }
         return reqRes;
-
     }
 }
