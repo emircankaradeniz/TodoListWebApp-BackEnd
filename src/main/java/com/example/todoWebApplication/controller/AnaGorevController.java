@@ -49,19 +49,24 @@ public class AnaGorevController {
     
     @GetMapping("/tamamlanan-gorevler-aylik")
     @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
-    public Map<Object, Long> getAylikTamamlananGorevler() {
-        return anaGorevRepository.findAll().stream()
-            .filter(AnaGorev::getTamamlandi) // Sadece tamamlanmış görevleri al
-            .collect(Collectors.groupingBy(
-                gorev -> {
-                    // Tarihi yıl-ay formatına çevir
-                    LocalDate tarih = gorev.getSonTarih().toInstant()
-                        .atZone(ZoneId.systemDefault()).toLocalDate();
-                    return tarih.getYear() + "-" + tarih.getMonthValue();
-                },
-                Collectors.counting() // Görevleri say
-            ));
+    public Map<Object, Long> getAylikTamamlananGorevler(Authentication authentication) {
+        String currentUserEmail = authentication.getName(); // Giriş yapan kullanıcının email'ini al
+        OurUsers user = usersRepo.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı.")); // Kullanıcıyı doğrula
+
+        // Kullanıcıya ait tamamlanan görevleri gruplandır
+        return anaGorevRepository.findByUser_Email(user.getEmail()).stream()
+                .filter(AnaGorev::getTamamlandi) // Sadece tamamlanmış görevler
+                .collect(Collectors.groupingBy(
+                        gorev -> {
+                            LocalDate tarih = gorev.getSonTarih().toInstant()
+                                    .atZone(ZoneId.systemDefault()).toLocalDate();
+                            return tarih.getYear() + "-" + tarih.getMonthValue(); // Yıl-Ay formatında grup
+                        },
+                        Collectors.counting() // Görev sayısı
+                ));
     }
+
 
     // Yeni görev oluşturma
     
