@@ -45,6 +45,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/ana-gorevler/**").hasAnyAuthority("USER", "ADMIN")
                         .requestMatchers("/api/profile/**").hasAnyAuthority("USER", "ADMIN")
                         .requestMatchers("/profile/update/**").hasAnyAuthority("USER", "ADMIN")
+                        .requestMatchers("/api/groq/**").hasAnyAuthority("USER", "ADMIN")
+                        .requestMatchers("/api/groq/**").permitAll()
                         .requestMatchers("/api/scrape/**").permitAll()
                         .anyRequest().authenticated()) // Diğer istekler için kimlik doğrulama iste
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless yapılandırma

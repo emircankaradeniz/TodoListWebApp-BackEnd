@@ -4,6 +4,7 @@ import com.example.todoWebApplication.entity.OurUsers;
 import com.example.todoWebApplication.model.AnaGorev;
 import com.example.todoWebApplication.repository.AnaGorevRepository;
 import com.example.todoWebApplication.repository.UsersRepo;
+import com.example.todoWebApplication.service.GroqService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,12 +26,14 @@ public class AnaGorevController {
 
     @Autowired
     private AnaGorevRepository anaGorevRepository;
-    
+
     @Autowired
     private UsersRepo usersRepo;
 
+    @Autowired
+    private GroqService groqService; // Tavsiye almak için servis
+
     // Tüm görevleri listeleme
-    
     @GetMapping
     @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public List<AnaGorev> getAllAnaGorevler(Authentication authentication) {
@@ -39,112 +42,95 @@ public class AnaGorevController {
     }
 
     // ID'ye göre görev getirme
-    
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public AnaGorev getAnaGorevById(@PathVariable Long id) {
         return anaGorevRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Görev bulunamadı: ID=" + id));
     }
-    
+
+    // Aylık tamamlanan görevler
     @GetMapping("/tamamlanan-gorevler-aylik")
     @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public Map<Object, Long> getAylikTamamlananGorevler(Authentication authentication) {
-        String currentUserEmail = authentication.getName(); // Giriş yapan kullanıcının email'ini al
+        String currentUserEmail = authentication.getName();
         OurUsers user = usersRepo.findByEmail(currentUserEmail)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı.")); // Kullanıcıyı doğrula
-
-        // Kullanıcıya ait tamamlanan görevleri gruplandır
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
         return anaGorevRepository.findByUser_Email(user.getEmail()).stream()
-                .filter(AnaGorev::getTamamlandi) // Sadece tamamlanmış görevler
+                .filter(AnaGorev::getTamamlandi)
                 .collect(Collectors.groupingBy(
                         gorev -> {
                             LocalDate tarih = gorev.getSonTarih().toInstant()
                                     .atZone(ZoneId.systemDefault()).toLocalDate();
-                            return tarih.getYear() + "-" + tarih.getMonthValue(); // Yıl-Ay formatında grup
+                            return tarih.getYear() + "-" + tarih.getMonthValue();
                         },
-                        Collectors.counting() // Görev sayısı
+                        Collectors.counting()
                 ));
     }
 
-
     // Yeni görev oluşturma
-    
     @PostMapping
     @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public AnaGorev createAnaGorev(@RequestBody AnaGorev anaGorev, Authentication authentication) {
         String currentUserEmail = authentication.getName();
         OurUsers user = usersRepo.findByEmail(currentUserEmail)
-                         .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
-        anaGorev.setUser(user); // Görevi giriş yapan kullanıcıya bağla
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
+        anaGorev.setUser(user);
         return anaGorevRepository.save(anaGorev);
     }
 
     // Görev güncelleme
-    
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public ResponseEntity<?> updateAnaGorev(@PathVariable("id") Long id, @RequestBody AnaGorev gorevDetails) {
         try {
-            if (anaGorevRepository.existsById(id)) {
-                AnaGorev gorev = anaGorevRepository.findById(id)
-                        .orElseThrow(() -> new RuntimeException("Görev bulunamadı: ID=" + id));
-                gorev.setGorevAdi(gorevDetails.getGorevAdi());
-                gorev.setSonTarih(gorevDetails.getSonTarih());
-                gorev.setSaat(gorevDetails.getSaat());
-                gorev.setTamamlandi(gorevDetails.getTamamlandi());
-                anaGorevRepository.save(gorev);
-                return ResponseEntity.ok("Görev başarıyla güncellendi: ID=" + id);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Görev bulunamadı: ID=" + id);
-            }
+            AnaGorev gorev = anaGorevRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Görev bulunamadı: ID=" + id));
+            gorev.setGorevAdi(gorevDetails.getGorevAdi());
+            gorev.setSonTarih(gorevDetails.getSonTarih());
+            gorev.setSaat(gorevDetails.getSaat());
+            gorev.setTamamlandi(gorevDetails.getTamamlandi());
+            anaGorevRepository.save(gorev);
+            return ResponseEntity.ok("Görev başarıyla güncellendi: ID=" + id);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Görev güncellenirken hata oluştu.");
         }
     }
-    
+
+    // Görev tamamlama
     @PutMapping("/tamamla/{id}")
     @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public ResponseEntity<?> tamamlaGorev(@PathVariable("id") Long id) {
         try {
-            if (anaGorevRepository.existsById(id)) {
-                AnaGorev gorev = anaGorevRepository.findById(id)
-                        .orElseThrow(() -> new RuntimeException("Görev bulunamadı: ID=" + id));
-                gorev.setTamamlandi(true);
-                anaGorevRepository.save(gorev);
-                return ResponseEntity.ok("Görev başarıyla tamamlandı: ID=" + id);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Görev bulunamadı: ID=" + id);
-            }
+            AnaGorev gorev = anaGorevRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Görev bulunamadı: ID=" + id));
+            gorev.setTamamlandi(true);
+            anaGorevRepository.save(gorev);
+            return ResponseEntity.ok("Görev başarıyla tamamlandı: ID=" + id);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Görev tamamlanırken hata oluştu.");
         }
     }
 
-    
+    // Görev silme
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     public ResponseEntity<?> deleteAnaGorev(@PathVariable("id") Long id) {
         try {
-            if (anaGorevRepository.existsById(id)) {
-                anaGorevRepository.deleteById(id);
-                return ResponseEntity.ok("Görev başarıyla silindi: ID=" + id);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Görev bulunamadı: ID=" + id);
-            }
+            anaGorevRepository.deleteById(id);
+            return ResponseEntity.ok("Görev başarıyla silindi: ID=" + id);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Silme işlemi sırasında hata oluştu.");
         }
     }
 
-
+    // Görev adına göre tavsiyeler alma
+    @PostMapping("/tavsiyeler")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
+    public String getTavsiyeler(@RequestParam String gorevAdi) {
+        return groqService.getRecommendation(gorevAdi);
+    }
 }
